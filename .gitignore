@@ -1,0 +1,16 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.idea/.idea.QueueHub/.idea
+/.vs/ProjectEvaluation
+/.vs/QueueHub
+/ExampleMessageConsumer/bin/Debug/net8.0
+/ExampleMessageConsumer/obj
+/ExampleMessageSource/bin/Debug/net8.0
+/ExampleMessageSource/obj
+/Queue/bin/Debug/net8.0
+/Queue/obj
+/QueueHub/.vs
+/QueueHub/bin/Debug/net8.0
+/QueueHub/obj

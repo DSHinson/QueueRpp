@@ -17,41 +17,36 @@ namespace QueueHub.Server
     {
         private static readonly int Port = 11000;
 
-        public static void Listener(CancellationToken cancellationToken)
-        {   using (var distributer = new Distributer())
+        public static async void Listener(CancellationToken cancellationToken)
+        {
+            using (var distributer = new Distributer())
             using (var _Q = new QInteractions<Message>())
+            using (var connectionHandler = new ConnectionHandler(IPAddress.Any.ToString(),Port, cancellationToken, async data =>
             {
+                var methodCall = JsonConvert.DeserializeObject<MethodCalldto<Message>>(data);
+                _Q.Enqueue(methodCall?.Args);
+            }))
+            {
+                _Q.ItemDequeued.Event += distributer.sendMessageToConsumer;
                 
-                TcpListener listener = new TcpListener(IPAddress.Any, Port);
-                listener.Start();
+                connectionHandler.Start();
 
                 try
                 {
-                    _Q.ItemDequeued.Event += distributer.sendMessageToConsumer;
                     while (!cancellationToken.IsCancellationRequested)
                     {
-                        Console.WriteLine("Waiting for a client to connect...");
-                        using (var client = listener.AcceptTcpClient())
-                        {
-                            byte[] buffer = new byte[256];
-                            int bytesRead = client.GetStream().Read(buffer, 0, buffer.Length);
-                            string receivedData = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-
-                            Console.WriteLine($"Received: {receivedData}");
-                            var methodCall = JsonConvert.DeserializeObject<MethodCalldto<Message>>(receivedData);
-
-                            Type type = typeof(QInteractions<Message>);
-                            _Q.Enqueue(methodCall?.Args);
-
-                        }
+                        // Keep the method alive until cancellation is requested
+                        await Task.Delay(1000);
                     }
                 }
                 finally
                 {
-                    listener.Stop();
                     Console.WriteLine("Listener stopped.");
                 }
             }
         }
+
+
+
     }
 }

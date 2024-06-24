@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using Queue;
 using QueueHub.Source.dto;
 using System.Threading;
+using QueueHub.Server;
 
 namespace QueueHub.Consumer
 {
@@ -28,7 +29,7 @@ namespace QueueHub.Consumer
         public QueueClient()
         {
             // Start the UDP listener in a new thread
-            Task.Run(() => StartListener(serverIp, Port, cts.Token));
+            Task.Run(() => StartListener(System.Net.IPAddress.Parse(serverIp), Port, cts.Token));
         }
 
         /// <summary>
@@ -39,35 +40,33 @@ namespace QueueHub.Consumer
 
         }
 
-        void StartListener(string serverIp, int serverPort, CancellationToken cancellationToken)
+        void StartListener(IPAddress serverIp, int serverPort, CancellationToken cancellationToken)
         {
+
             try
             {
-                TcpListener listener = new TcpListener(IPAddress.Any, Port);
-                listener.Start();
-
-                try
+                using (var connectionHandler = new ConnectionHandler(serverIp.ToString(), serverPort, cancellationToken, async data =>
                 {
-                    while (!cancellationToken.IsCancellationRequested)
+                    Console.WriteLine("Waiting for a client to connect...");
+                    var message = JsonConvert.DeserializeObject<Message>(data);
+                    Console.WriteLine($"Received: {message}");
+                    ItemReceived?.Invoke(message);
+                }))
+                {
+                    connectionHandler.Start();
+
+                    try
                     {
-                        Console.WriteLine("Waiting for a client to connect...");
-                        using (var client = listener.AcceptTcpClient())
+                        while (!cancellationToken.IsCancellationRequested)
                         {
-                            byte[] buffer = new byte[256];
-                            int bytesRead = client.GetStream().Read(buffer, 0, buffer.Length);
-                            string receivedData = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-
-                            Console.WriteLine($"Received: {receivedData}");
-                            var message = JsonConvert.DeserializeObject<Message>(receivedData);
-
-                            ItemReceived?.Invoke(message);
+                            // Keep the method alive until cancellation is requested
+                            Task.Delay(1000);
                         }
                     }
-                }
-                finally
-                {
-                    listener.Stop();
-                    Console.WriteLine("Listener stopped.");
+                    finally
+                    {
+                        Console.WriteLine("Listener stopped.");
+                    }
                 }
             }
             catch (SocketException ex)

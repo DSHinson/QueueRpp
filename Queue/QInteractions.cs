@@ -55,6 +55,7 @@ namespace Queue
                    var result = await DequeueAsync();
                     if (result != null)
                     {
+                        Console.WriteLine("Item dequeued");
                         ItemDequeued?.Raise(result);
                     }
                     // Wait for a short interval to avoid tight loop if queue is empty

@@ -54,12 +54,19 @@ The project is organized as follows:
 
 QueueRpp/
 ├── .git/ # Git version control directory
+
 ├── .gitignore # Git ignore file
+
 ├── ExampleMessageConsumer/ # Contains message consumer implementation
+
 ├── ExampleMessageSource/ # Contains message source implementation
+
 ├── Queue/ # Contains queue management implementation
+
 ├── QueueHub.sln # Solution file for the project
+
 ├── QueueHub/ # Main project directory
+
 ├── ReadMe.md # Project documentation (you are here)
 
 

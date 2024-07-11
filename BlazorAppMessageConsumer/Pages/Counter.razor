@@ -1,0 +1,48 @@
+﻿@page "/counter"
+@using Queue
+@using QueueHub.Consumer
+@inject MessageReceiverService QueueService
+
+<PageTitle>Counter</PageTitle>
+
+<h1>Counter</h1>
+
+<p role="status">Current count: @currentCount</p>
+
+<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+
+<h3>Queue Messages</h3>
+<ul>
+    @foreach (var message in messages)
+    {
+        <li>@message.Value</li>
+    }
+</ul>
+
+@code {
+    private int currentCount = 0;
+    private List<Message> messages = new List<Message>();
+    protected override void OnInitialized()
+    {
+        QueueService.ItemReceived += OnItemReceived;
+    }
+
+    private void IncrementCount()
+    {
+        currentCount++;
+    }
+
+    private void OnItemReceived(Message msg)
+    {
+        if (msg != null)
+        {
+            messages.Add(msg);
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    public void Dispose()
+    {
+        QueueService.ItemReceived -= OnItemReceived;
+    }
+}

@@ -10,5 +10,7 @@ namespace QueueHub.Source.dto
     {
         public string MethodName { get; set; }
         public T Args { get; set; }
+        
     }
+
 }

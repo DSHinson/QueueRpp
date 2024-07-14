@@ -1,4 +1,5 @@
 ﻿using Queue;
+using QueueHub.Source.dto;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,9 +11,17 @@ namespace QueueHub.Consumer
 {
     public class Distributer : IDisposable
     {
+        private List<string> clients = new List<string>();
         // subscribe to the event
-        public void subscribe()
-        { 
+        public void Subscribe(MethodCalldto<object[]> subscibeInfo)
+        {
+            clients.Add(subscibeInfo.MethodName);
+        }
+
+        // unsubscribe to the event
+        public void Unsubscribe(MethodCalldto<object[]> unsubscibeInfo)
+        {
+            clients.Remove(unsubscibeInfo.MethodName);
         }
 
         public void sendMessageToConsumer(Message message) {

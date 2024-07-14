@@ -20,8 +20,7 @@ namespace QueueHub.Source
             remoteAddress = address;
             remotePort = port;
         }
-
-        protected override object Invoke(MethodInfo targetMethod, object[] args)
+         protected override object Invoke(MethodInfo targetMethod, object[] args)
         {
             if (targetMethod.Name.ToUpper().Contains("SENDMESSAGE"))
             { 

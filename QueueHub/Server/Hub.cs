@@ -25,7 +25,7 @@ namespace QueueHub.Server
             {
                 var methodCall = JsonConvert.DeserializeObject<MethodCalldto<Message>>(data);
                 _Q.Enqueue(methodCall?.Args);
-            }))
+            },distributer))
             {
                 _Q.ItemDequeued.Event += distributer.sendMessageToConsumer;
                 

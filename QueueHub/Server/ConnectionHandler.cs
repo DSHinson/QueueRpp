@@ -1,9 +1,14 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Queue;
+using QueueHub.Consumer;
+using QueueHub.Source.dto;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace QueueHub.Server
 {
@@ -12,12 +17,14 @@ namespace QueueHub.Server
         private TcpListener _listener;
         private CancellationToken _cancellationToken;
         private Func<string, Task>? _callback;
+        private readonly Distributer? distributer;
 
-        public ConnectionHandler(string IPAddress,int port, CancellationToken cancellationToken, Func<string, Task> callback)
+        public ConnectionHandler( string IPAddress,int port, CancellationToken cancellationToken, Func<string, Task> callback, Distributer? distrub = null)
         {
             _= IPAddress ?? throw new ArgumentNullException(nameof(IPAddress));
             _callback = callback ?? throw new ArgumentNullException(nameof(callback));
             _cancellationToken = cancellationToken;
+            distributer = distrub;
 
             _listener = new TcpListener(System.Net.IPAddress.Parse(IPAddress), port);
         }
@@ -46,12 +53,28 @@ namespace QueueHub.Server
                         byte[] buffer = new byte[256];
                         int bytesRead = await client.GetStream().ReadAsync(buffer, 0, buffer.Length, cancellationToken);
                         string receivedData = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-
                         Console.WriteLine($"Received: {receivedData}");
-                        if (_callback != null)
+
+                        var methodCall = JsonConvert.DeserializeObject<MethodCalldto<dynamic>>(receivedData);
+
+                        if (methodCall != null && methodCall.MethodName.ToUpper().Contains("SENDMESSAGE"))
                         {
-                            _ = _callback(receivedData);
+                            if (_callback != null)
+                            {
+                                _ = _callback(receivedData);
+                            }
                         }
+                        if (methodCall != null && methodCall.MethodName.ToUpper().Contains("SUBSCRIBE"))
+                        {
+                            distributer?.Subscribe(methodCall.ConvertToMethodCallDtoObjectArray());
+                        }
+                        if (methodCall != null && methodCall.MethodName.ToUpper().Contains("UNSUBSCRIBE"))
+                        {
+                            distributer?.Unsubscribe(methodCall.ConvertToMethodCallDtoObjectArray());
+                        }
+
+                        
+                        
                     }
                 }
             }

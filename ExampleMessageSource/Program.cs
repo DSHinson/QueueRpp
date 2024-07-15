@@ -1,5 +1,6 @@
 ﻿using Queue;
 using QueueHub.Source;
+using QueueHub.Source.dto;
 
 namespace ExampleMessageSource
 {

@@ -1,4 +1,5 @@
 ﻿using Queue;
+using QueueHub.Source.dto;
 using System;
 using System.Collections.Generic;
 using System.Linq;

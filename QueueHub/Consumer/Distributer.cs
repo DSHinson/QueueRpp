@@ -1,4 +1,5 @@
 ﻿using Queue;
+using QueueHub.Source;
 using QueueHub.Source.dto;
 using System;
 using System.Collections.Generic;
@@ -11,26 +12,30 @@ namespace QueueHub.Consumer
 {
     public class Distributer : IDisposable
     {
-        private List<string> clients = new List<string>();
+        private List<KeyValuePair<string,TcpClient>> clients =new List<KeyValuePair<string, TcpClient>>();
         // subscribe to the event
         public void Subscribe(MethodCalldto<object[]> subscibeInfo)
         {
-            clients.Add(subscibeInfo.MethodName);
+            TcpClient client = new TcpClient(subscibeInfo.Args[1].ToString(), int.Parse(subscibeInfo.Args[0].ToString()));
+            clients.Insert(0,new KeyValuePair<string, TcpClient>(subscibeInfo.Args[0].ToString(), client));
         }
 
         // unsubscribe to the event
         public void Unsubscribe(MethodCalldto<object[]> unsubscibeInfo)
         {
-            clients.Remove(unsubscibeInfo.MethodName);
+            KeyValuePair<string, TcpClient> client = clients.Where(x=>x.Key == unsubscibeInfo.Args[0].ToString()).First();
+            clients.Remove(client);
+            client.Value.Close();
+            client.Value.Dispose();
         }
 
         public void sendMessageToConsumer(Message message) {
             Console.WriteLine($"Sending message:{message?.Value}");
 
-            using (var client = new TcpClient("127.0.0.1", 5005))
-            {
-                string serializedData = Newtonsoft.Json.JsonConvert.SerializeObject(message);
-                byte[] sendBytes = Encoding.UTF8.GetBytes(serializedData);
+            foreach (var kvp in clients)
+            { 
+                TcpClient client = kvp.Value;
+                byte[] sendBytes = NetworkSerializer.serializeToJsonToBytes(message);
                 client.GetStream().Write(sendBytes, 0, sendBytes.Length);
 
                 byte[] buffer = new byte[256];
@@ -42,6 +47,10 @@ namespace QueueHub.Consumer
         public void Dispose()
         {
             ///kill all the client connections
+            foreach (var client in clients) {
+                client.Value.Close();
+                client.Value.Dispose();
+            }
         }
     }
 }

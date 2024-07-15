@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace QueueHub.Source.dto
 {
-    public static class MethodCallDtoExtensions
+    public static class MethodCalldtoExtensions
     {
         public static MethodCalldto<string[]> ConvertToMethodCallDtoStringArray(this MethodCalldto<dynamic> dynamicDto)
         {

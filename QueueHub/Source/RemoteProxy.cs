@@ -42,17 +42,11 @@ namespace QueueHub.Source
 
         private object handleSendMessage(MethodInfo targetMethod, object[] args)
         {
-            var methodToCall = new MethodCalldto<Message>
-            {
-                MethodName = targetMethod.Name,
-                Args = (Message)args[0]
-            };
-
-            string serializedData = JsonConvert.SerializeObject(methodToCall);
+            Message message = (Message)args[0];
 
             using (var client = new TcpClient(remoteAddress, remotePort))
             {
-                byte[] sendBytes = Encoding.UTF8.GetBytes(serializedData);
+                byte[] sendBytes = NetworkSerializer.serializeToJsonToBytes(message);
                 client.GetStream().Write(sendBytes, 0, sendBytes.Length);
 
                 byte[] buffer = new byte[256];
@@ -70,11 +64,9 @@ namespace QueueHub.Source
                 Args = args
             };
 
-            string serializedData = JsonConvert.SerializeObject(methodToCall);
-
             using (var client = new TcpClient(remoteAddress, remotePort))
             {
-                byte[] sendBytes = Encoding.UTF8.GetBytes(serializedData);
+                byte[] sendBytes = NetworkSerializer.serializeToJsonToBytes(methodToCall);
                 client.GetStream().Write(sendBytes, 0, sendBytes.Length);
 
                 byte[] buffer = new byte[256];
@@ -92,11 +84,9 @@ namespace QueueHub.Source
                 Args = args
             };
 
-            string serializedData = JsonConvert.SerializeObject(methodToCall);
-
             using (var client = new TcpClient(remoteAddress, remotePort))
             {
-                byte[] sendBytes = Encoding.UTF8.GetBytes(serializedData);
+                byte[] sendBytes = NetworkSerializer.serializeToJsonToBytes(methodToCall);
                 client.GetStream().Write(sendBytes, 0, sendBytes.Length);
 
                 byte[] buffer = new byte[256];

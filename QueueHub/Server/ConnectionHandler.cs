@@ -1,10 +1,12 @@
 ﻿using Newtonsoft.Json;
 using Queue;
 using QueueHub.Consumer;
+using QueueHub.Source;
 using QueueHub.Source.dto;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,6 +16,26 @@ namespace QueueHub.Server
 {
     public class ConnectionHandler:IDisposable
     {
+        private class ClientWrapper()
+        {   public string Id 
+            { 
+                get
+                {
+                    return _address.Address.ToString();
+                } 
+            }
+            public TcpClient client
+            {
+                get
+                {
+                    return _client;
+                }
+            }
+            private TcpClient _client;
+            private int _port;
+            private IPAddress _address;
+        }
+
         private TcpListener _listener;
         private CancellationToken _cancellationToken;
         private Func<string, Task>? _callback;
@@ -55,23 +77,32 @@ namespace QueueHub.Server
                         string receivedData = Encoding.UTF8.GetString(buffer, 0, bytesRead);
                         Console.WriteLine($"Received: {receivedData}");
 
-                        var methodCall = JsonConvert.DeserializeObject<MethodCalldto<dynamic>>(receivedData);
+                        var networkPacket = JsonConvert.DeserializeObject<NetworkMessageWrapper>(receivedData);
 
-                        if (methodCall != null && methodCall.MethodName.ToUpper().Contains("SENDMESSAGE"))
+                        if (networkPacket != null && networkPacket.Type == MessageType.Message)
                         {
                             if (_callback != null)
                             {
-                                _ = _callback(receivedData);
+                                _ = _callback(networkPacket.Payload);
                             }
                         }
-                        if (methodCall != null && methodCall.MethodName.ToUpper().Contains("SUBSCRIBE"))
+                        if (networkPacket != null && networkPacket.Type == MessageType.MethodCall)
                         {
-                            distributer?.Subscribe(methodCall.ConvertToMethodCallDtoObjectArray());
+                            var methodCall = JsonConvert.DeserializeObject<MethodCalldto<object[]>>(networkPacket.Payload);
+
+                            if (methodCall.MethodName.ToUpper().Contains("UNSUBSCRIBE"))
+                            {
+                                distributer?.Unsubscribe(methodCall);
+                                
+                            }
+                            else if (methodCall.MethodName.ToUpper().Contains("SUBSCRIBE"))
+                            {
+                                distributer?.Subscribe(methodCall);
+                            }
+                            
+                            
                         }
-                        if (methodCall != null && methodCall.MethodName.ToUpper().Contains("UNSUBSCRIBE"))
-                        {
-                            distributer?.Unsubscribe(methodCall.ConvertToMethodCallDtoObjectArray());
-                        }
+                       
 
                         
                         

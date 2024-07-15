@@ -23,8 +23,8 @@ namespace QueueHub.Server
             using (var _Q = new QInteractions<Message>())
             using (var connectionHandler = new ConnectionHandler(IPAddress.Any.ToString(),Port, cancellationToken, async data =>
             {
-                var methodCall = JsonConvert.DeserializeObject<MethodCalldto<Message>>(data);
-                _Q.Enqueue(methodCall?.Args);
+                var methodCall = JsonConvert.DeserializeObject<Message>(data);
+                _Q.Enqueue(methodCall);
             },distributer))
             {
                 _Q.ItemDequeued.Event += distributer.sendMessageToConsumer;

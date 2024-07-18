@@ -16,9 +16,9 @@ namespace QueueHub.Consumer
         // subscribe to the event
         public void Subscribe(MethodCalldto<object[]> subscibeInfo)
         {
-            subscibeInfo.Args[1].ToString();
-                int.Parse(subscibeInfo.Args[0].ToString();
-            DistributerTCPClient client = new DistributerTCPClient();
+            DistributerTCPClient client = new DistributerTCPClient(
+                subscibeInfo.Args[1].ToString()
+              , int.Parse(subscibeInfo.Args[0].ToString()));
             clients.Add(client);
         }
 
@@ -26,9 +26,8 @@ namespace QueueHub.Consumer
         public void Unsubscribe(MethodCalldto<object[]> unsubscibeInfo)
         {
             DistributerTCPClient client = clients.Where(x=>x.Id == unsubscibeInfo.Args[0].ToString()).First();
+            client.Dispose();
             clients.Remove(client);
-            client.client.Close();
-            client.client.Dispose();
         }
 
         public void sendMessageToConsumer(Message message) {

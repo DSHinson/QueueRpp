@@ -14,9 +14,9 @@ namespace QueueHub.Consumer
         private TcpClient _client;
         private readonly string _cacheKey;
 
-        public DistributerTCPClient(IPAddress address, int port)
+        public DistributerTCPClient(string address, int port)
         {
-            _address = address ?? throw new ArgumentNullException(nameof(address));
+            _address = IPAddress.Parse(address ?? throw new ArgumentNullException(nameof(address)));
             _port = port > 0 ? port : throw new ArgumentOutOfRangeException(nameof(port));
             _cacheKey = $"{_address}:{_port}";
             _client = new TcpClient();
@@ -65,9 +65,15 @@ namespace QueueHub.Consumer
         {
             if (!_clientCache.TryGetValue(_cacheKey, out _client))
             {
-                _client = new TcpClient();
-                _client.Connect(_address, _port);
-                _clientCache.TryAdd(_cacheKey, _client);
+                try
+                {
+                    _client = new TcpClient();
+                    _client.Connect(_address, _port);
+                    _clientCache.TryAdd(_cacheKey, _client);
+                }
+                catch (Exception err){
+                    Console.WriteLine(err.ToString());
+                }
             }
         }
 

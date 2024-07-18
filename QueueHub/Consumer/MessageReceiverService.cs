@@ -14,7 +14,7 @@ namespace QueueHub.Consumer
         public MessageReceiverService()
         {
             subscribeUtil = new MessageSubscribeFactory().CreateMessageSubscriber();
-            subscribeUtil.Subscribe(2222,"127.0.0.1");
+            subscribeUtil.Subscribe(5005, "127.0.0.1");
 
             queueManager = new QueueClient();
             queueManager.ItemReceived += OnItemReceived;
@@ -27,7 +27,7 @@ namespace QueueHub.Consumer
 
         public void Dispose()
         {
-            subscribeUtil.UnSubscribe(2222, "127.0.0.1");
+            subscribeUtil.UnSubscribe(5005, "127.0.0.1");
             queueManager.ItemReceived -= OnItemReceived;
             queueManager.Dispose();
         }

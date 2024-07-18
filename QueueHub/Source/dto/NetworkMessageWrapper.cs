@@ -6,11 +6,15 @@ using System.Threading.Tasks;
 
 namespace QueueHub.Source.dto
 {
-    public class MethodCalldto<T>
+    public class NetworkMessageWrapper
     {
-        public string MethodName { get; set; }
-        public T Args { get; set; }
-        
-    }
+        public MessageType Type { get; set; }
+        public string Payload { get; set; }
 
+    }
 }
+
+
+
+
+

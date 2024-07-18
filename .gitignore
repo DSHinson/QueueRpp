@@ -14,3 +14,5 @@
 /QueueHub/.vs
 /QueueHub/bin/Debug/net8.0
 /QueueHub/obj
+/BlazorAppMessageConsumer/bin/Debug
+/BlazorAppMessageConsumer/obj

@@ -47,8 +47,10 @@ namespace Queue
 
         private async Task DequeueContinuously(CancellationToken cancellationToken)
         {
+            
             while (!cancellationToken.IsCancellationRequested)
             {
+                Console.WriteLine("dequeue poll..");
                 try
                 {
                     // Poll for items and process them

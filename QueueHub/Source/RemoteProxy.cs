@@ -20,27 +20,80 @@ namespace QueueHub.Source
             remoteAddress = address;
             remotePort = port;
         }
-
-        protected override object Invoke(MethodInfo targetMethod, object[] args)
+         protected override object Invoke(MethodInfo targetMethod, object[] args)
         {
-            var methodToCall = new MethodCalldto<Message>
+            if (targetMethod.Name.ToUpper().Contains("SENDMESSAGE"))
+            { 
+                return handleSendMessage(targetMethod, args);
+            }
+            else if (targetMethod.Name.ToUpper().Contains("SUBSCRIBE"))
+            { 
+                return handleSendSubscribe(targetMethod, args);
+            }
+            else if (targetMethod.Name.ToUpper().Contains("UNSUBSCRIBE"))
             {
-                MethodName = targetMethod.Name,
-                Args = (Message)args[0]
-            };
+                return handleSendUnsubscribe(targetMethod, args);
+            }
 
-            string serializedData = JsonConvert.SerializeObject(methodToCall);
+            else { 
+                throw new NotImplementedException(targetMethod.Name);
+            }
+        }
+
+        private object handleSendMessage(MethodInfo targetMethod, object[] args)
+        {
+            Message message = (Message)args[0];
 
             using (var client = new TcpClient(remoteAddress, remotePort))
             {
-                byte[] sendBytes = Encoding.UTF8.GetBytes(serializedData);
+                byte[] sendBytes = NetworkSerializer.serializeToJsonToBytes(message);
                 client.GetStream().Write(sendBytes, 0, sendBytes.Length);
 
                 byte[] buffer = new byte[256];
                 int bytesRead = client.GetStream().Read(buffer, 0, buffer.Length);
                 string response = Encoding.UTF8.GetString(buffer, 0, bytesRead);
 
-                return response;  
+                return response;
+            }
+        }
+        private object handleSendSubscribe(MethodInfo targetMethod, object[] args)
+        {
+            var methodToCall = new MethodCalldto<object[]>
+            {
+                MethodName = targetMethod.Name,
+                Args = args
+            };
+
+            using (var client = new TcpClient(remoteAddress, remotePort))
+            {
+                byte[] sendBytes = NetworkSerializer.serializeToJsonToBytes(methodToCall);
+                client.GetStream().Write(sendBytes, 0, sendBytes.Length);
+
+                byte[] buffer = new byte[256];
+                int bytesRead = client.GetStream().Read(buffer, 0, buffer.Length);
+                string response = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+
+                return response;
+            }
+        }
+        private object handleSendUnsubscribe(MethodInfo targetMethod, object[] args)
+        {
+            var methodToCall = new MethodCalldto<object[]>
+            {
+                MethodName = targetMethod.Name,
+                Args = args
+            };
+
+            using (var client = new TcpClient(remoteAddress, remotePort))
+            {
+                byte[] sendBytes = NetworkSerializer.serializeToJsonToBytes(methodToCall);
+                client.GetStream().Write(sendBytes, 0, sendBytes.Length);
+
+                byte[] buffer = new byte[256];
+                int bytesRead = client.GetStream().Read(buffer, 0, buffer.Length);
+                string response = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+
+                return response;
             }
         }
     }

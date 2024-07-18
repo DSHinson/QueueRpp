@@ -19,15 +19,17 @@ namespace QueueHub.Consumer
     public class QueueClient : IDisposable
     {
         public int Port = 5005;
-        public string serverIp = "127.0.0.1";
+        public string ServerIp = "127.0.0.1";
         public event Action<Message>? ItemReceived;
         private CancellationTokenSource cts = new CancellationTokenSource();
 
         /// <summary>
         /// Start the UdpClient
         /// </summary>
-        public QueueClient()
+        public QueueClient(int port = 5005, string serverIp = "127.0.0.1")
         {
+            Port = port;
+            ServerIp = serverIp;
             // Start the UDP listener in a new thread
             Task.Run(() => StartListener(System.Net.IPAddress.Parse(serverIp), Port, cts.Token));
         }

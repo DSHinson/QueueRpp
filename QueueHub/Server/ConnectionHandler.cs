@@ -16,26 +16,6 @@ namespace QueueHub.Server
 {
     public class ConnectionHandler:IDisposable
     {
-        private class ClientWrapper()
-        {   public string Id 
-            { 
-                get
-                {
-                    return _address.Address.ToString();
-                } 
-            }
-            public TcpClient client
-            {
-                get
-                {
-                    return _client;
-                }
-            }
-            private TcpClient _client;
-            private int _port;
-            private IPAddress _address;
-        }
-
         private TcpListener _listener;
         private CancellationToken _cancellationToken;
         private Func<string, Task>? _callback;
@@ -102,9 +82,6 @@ namespace QueueHub.Server
                             
                             
                         }
-                       
-
-                        
                         
                     }
                 }

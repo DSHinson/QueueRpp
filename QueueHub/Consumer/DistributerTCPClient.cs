@@ -71,31 +71,55 @@ namespace QueueHub.Consumer
                     _client.Connect(_address, _port);
                     _clientCache.TryAdd(_cacheKey, _client);
                 }
-                catch (Exception err){
+                catch (Exception err)
+                {
                     Console.WriteLine(err.ToString());
+                }
+            }
+            else
+            {
+                // Ensure the cached client is still connected
+                if (!_client.Connected)
+                {
+                    try
+                    {
+                        _client = new TcpClient();
+                        _client.Connect(_address, _port);
+                        _clientCache[_cacheKey] = _client; // Update the cache with the new client
+                    }
+                    catch (Exception err)
+                    {
+                        Console.WriteLine(err.ToString());
+                    }
                 }
             }
         }
 
         /// <summary>
-        /// Closes the connection to the server and adds the TcpClient back to the cache if still connected.
+        /// Closes the connection to the server and removes the TcpClient from the cache.
         /// </summary>
         private void Close()
         {
-            if (_client.Connected)
+            if (_client != null)
             {
-                // Close the network stream and the client connection
-                _client.GetStream().Close();
-                _client.Close();
+                if (_client.Connected)
+                {
+                    try
+                    {
+                        // Close the network stream and the client connection
+                        _client.GetStream().Close();
+                        _client.Close();
+                    }
+                    catch (Exception err)
+                    {
+                        Console.WriteLine(err.ToString());
+                    }
+                }
 
-                // Add the TcpClient back to the cache
-                _clientCache[_cacheKey] = _client;
-            }
-            else
-            {
-                // Remove the TcpClient from the cache if it's no longer connected
+                // Remove the TcpClient from the cache and dispose it
                 _clientCache.TryRemove(_cacheKey, out _);
                 _client.Dispose();
+                _client = null;
             }
         }
 

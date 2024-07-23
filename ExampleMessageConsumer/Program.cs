@@ -1,5 +1,6 @@
 ﻿using Queue;
 using QueueHub.Consumer;
+using QueueHub.Source.dto;
 
 namespace ExampleMessageConsumer
 {
@@ -11,33 +12,25 @@ namespace ExampleMessageConsumer
         {
             Console.Title = "Message Consumer";
             Console.WriteLine("Starting...");
+            MessageReceiverService messageReceiver = new MessageReceiverService("127.0.0.1", 5066);
+            messageReceiver.ItemReceived += (msg) =>
+            {
+                Console.WriteLine(msg?.Value);
+            };
 
-            using (var queueManager = new QueueClient())
+            Console.WriteLine("Press Ctrl+C to exit.");
+
+            Console.CancelKeyPress += (sender, e) =>
+            {
+                e.Cancel = true;
+                _exitRequested = true;
+            };
+            while (!_exitRequested)
             {
 
-                // Subscribe to the ItemDequeued event
-                queueManager.ItemReceived += (msg) => {
-                    Console.WriteLine(msg?.Value);
-                };
-
-                Console.WriteLine("Press Ctrl+C to exit.");
-
-                Console.CancelKeyPress += (sender, e) =>
-                {
-                    e.Cancel = true;
-                    _exitRequested = true;
-                };
-                while (!_exitRequested)
-                {
-
-                    // Keep the application alive
-                    Thread.Sleep(100);
-                }
-
+                // Keep the application alive
+                Thread.Sleep(100);
             }
-
-
         }
-
     }
 }

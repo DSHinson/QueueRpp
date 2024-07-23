@@ -1,4 +1,5 @@
 using BlazorAppMessageConsumer.Data;
+using Microsoft.Extensions.DependencyInjection;
 using QueueHub.Consumer;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddSingleton<WeatherForecastService>();
-builder.Services.AddSingleton<MessageReceiverService>();
+builder.Services.AddSingleton<MessageReceiverService>(provider => new MessageReceiverService("127.0.0.1",5005));
 
 
 

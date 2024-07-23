@@ -18,40 +18,37 @@ namespace QueueHub.Consumer
     /// </summary>
     public class QueueClient : IDisposable
     {
-        public int Port = 5005;
-        public string ServerIp = "127.0.0.1";
+        public int Port;
+        public string ServerIp;
         public event Action<Message>? ItemReceived;
         private CancellationTokenSource cts = new CancellationTokenSource();
 
         /// <summary>
         /// Start the UdpClient
         /// </summary>
-        public QueueClient(int port = 5005, string serverIp = "127.0.0.1")
+        public QueueClient(string serverIp,int port)
         {
             Port = port;
-            ServerIp = serverIp;
+            ServerIp = serverIp ?? throw new ArgumentNullException(nameof(serverIp));
+
             // Start the UDP listener in a new thread
             Task.Run(() => StartListener(System.Net.IPAddress.Parse(serverIp), Port, cts.Token));
         }
 
         /// <summary>
-        /// Sends the config to the hub so the client can receive messages
+        /// 
         /// </summary>
-        public void Subscribe()
+        /// <param name="serverIp"></param>
+        /// <param name="serverPort"></param>
+        /// <param name="cancellationToken"></param>
+        private void StartListener(IPAddress serverIp, int serverPort, CancellationToken cancellationToken)
         {
-
-        }
-
-        void StartListener(IPAddress serverIp, int serverPort, CancellationToken cancellationToken)
-        {
-
             try
             {
                 using (var connectionHandler = new ConnectionHandler(serverIp.ToString(), serverPort, cancellationToken, async data =>
                 {
                     Console.WriteLine("Waiting for a client to connect...");
                     var message = JsonConvert.DeserializeObject<Message>(data);
-                    Console.WriteLine($"Received: {message}");
                     ItemReceived?.Invoke(message);
                 }))
                 {
@@ -81,14 +78,8 @@ namespace QueueHub.Consumer
             }
         }
 
-        private void UnSubscribe()
-        {
-
-        }
-
         public void Dispose()
         {
-            UnSubscribe();
             cts.Cancel();
         }
 

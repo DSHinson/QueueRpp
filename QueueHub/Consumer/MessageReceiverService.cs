@@ -11,12 +11,12 @@ namespace QueueHub.Consumer
 
         public event Action<Message> ItemReceived;
 
-        public MessageReceiverService()
+        public MessageReceiverService(string IpAddress , int port)
         {
             subscribeUtil = new MessageSubscribeFactory().CreateMessageSubscriber();
-            subscribeUtil.Subscribe(5005, "127.0.0.1");
-
-            queueManager = new QueueClient();
+            subscribeUtil.Subscribe(port, IpAddress);
+            
+            queueManager = new QueueClient(IpAddress, port);
             queueManager.ItemReceived += OnItemReceived;
         }
 

@@ -30,13 +30,12 @@ namespace QueueHub.Consumer
             clients.Remove(client);
         }
 
-        public void sendMessageToConsumer(Message message) {
-            Console.WriteLine($"Sending message:{message?.Value}");
+        public async void sendMessageToConsumer(Message message) {
+            Console.WriteLine($"Sending message: {message?.Value}");
 
-            foreach (var subscriber in clients)
-            {
-                subscriber.Send(message);      
-            }
+            var tasks = clients.Select(subscriber => Task.Run(() => subscriber.Send(message))).ToList();
+
+            await Task.WhenAll(tasks);
         }
 
         public void Dispose()

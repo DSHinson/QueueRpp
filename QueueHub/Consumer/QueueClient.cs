@@ -41,7 +41,7 @@ namespace QueueHub.Consumer
         /// <param name="serverIp"></param>
         /// <param name="serverPort"></param>
         /// <param name="cancellationToken"></param>
-        private void StartListener(IPAddress serverIp, int serverPort, CancellationToken cancellationToken)
+        private async void StartListener(IPAddress serverIp, int serverPort, CancellationToken cancellationToken)
         {
             try
             {
@@ -59,7 +59,7 @@ namespace QueueHub.Consumer
                         while (!cancellationToken.IsCancellationRequested)
                         {
                             // Keep the method alive until cancellation is requested
-                            Task.Delay(1000);
+                            await Task.Delay(1000);
                         }
                     }
                     finally
